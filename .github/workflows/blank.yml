@@ -1,0 +1,77 @@
+import sqlite3
+
+# Initialize SQLite database
+conn = sqlite3.connect('ats.db')
+cursor = conn.cursor()
+
+# Create tables
+cursor.execute('''CREATE TABLE IF NOT EXISTS Applicants (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT,
+                    email TEXT,
+                    resume TEXT
+                )''')
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS Jobs (
+                    id INTEGER PRIMARY KEY,
+                    title TEXT,
+                    description TEXT
+                )''')
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS Applications (
+                    id INTEGER PRIMARY KEY,
+                    applicant_id INTEGER,
+                    job_id INTEGER,
+                    FOREIGN KEY(applicant_id) REFERENCES Applicants(id),
+                    FOREIGN KEY(job_id) REFERENCES Jobs(id)
+                )''')
+
+conn.commit()
+
+class Applicant:
+    def __init__(self, name, email, resume):
+        self.name = name
+        self.email = email
+        self.resume = resume
+
+    def save(self):
+        cursor.execute("INSERT INTO Applicants (name, email, resume) VALUES (?, ?, ?)",
+                       (self.name, self.email, self.resume))
+        conn.commit()
+        return cursor.lastrowid
+
+class Job:
+    def __init__(self, title, description):
+        self.title = title
+        self.description = description
+
+    def save(self):
+        cursor.execute("INSERT INTO Jobs (title, description) VALUES (?, ?)",
+                       (self.title, self.description))
+        conn.commit()
+        return cursor.lastrowid
+
+class Application:
+    def __init__(self, applicant_id, job_id):
+        self.applicant_id = applicant_id
+        self.job_id = job_id
+
+    def save(self):
+        cursor.execute("INSERT INTO Applications (applicant_id, job_id) VALUES (?, ?)",
+                       (self.applicant_id, self.job_id))
+        conn.commit()
+        return cursor.lastrowid
+
+# Sample usage
+if __name__ == "__main__":
+    # Create a new applicant
+    applicant = Applicant(name="John Doe", email="john@example.com", resume="Path_to_resume")
+    applicant_id = applicant.save()
+
+    # Create a new job
+    job = Job(title="Software Engineer", description="Python developer with 3 years of experience")
+    job_id = job.save()
+
+    # Apply for a job
+    application = Application(applicant_id, job_id)
+    application.save()
